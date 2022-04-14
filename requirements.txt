@@ -1,0 +1,4 @@
+pytest
+databricks-connect==9.1.10
+pylint==2.3.1
+wheel

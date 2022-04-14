@@ -1,0 +1,52 @@
+{
+    "metadata": {
+        "load_strategy": "SCD2",
+        "input": {
+            "dbx_hive": {
+                "src_query_exists": true,
+                "src_sql": "SELECT col1 AS id, col2 AS employee_id, col3 AS first_name,col4 AS last_name,col5 AS gender, col6 AS address_street, col7 AS address_city, col8 AS address_country, col9 AS email, col10 AS job_title FROM VALUES (5, 7, 'Freddie', 'Flintoff', 'Male', '3686 Dogwood Road', 'HBD', 'kannada', 'fflintoft5@unblog.fr', 'Financial Advisor'),(20, 21, 'Hilary', 'Thompson', 'Female', '4 Oxford Pass', 'HBD', 'mandarin', 'hcasillisk@washington.edu', 'Senior Sales Associate'); ",
+                "src_db_name": "",
+                "src_tab_name": "",
+                "src_query_alias": "scdType2NEW"
+            },
+            "adls_fs": {
+                "src_file_loc": "data/unified/psc-conf/quality/u_quality_carisma3/quality_alert"
+            }
+        },
+        "output": {
+            "dbx_hive": {
+                "dest_query_exists": true,
+                "dest_sql": "SELECT   id, employee_id, first_name, last_name, gender, address_street, address_city, address_country, email, job_title, start_date, end_date, effective_start_dtm, effective_end_dtm  FROM scd.scdType2_1 WHERE employee_id IN (SELECT employee_id FROM scdType2NEW)",
+                "dest_db_name": "scd",
+                "dest_tab_name": "scdType2",
+                "dest_query_alias": "scdType2_temp"
+            },
+            "adls_fs": {
+                "dest_file_loc": "data/unified/psc-conf/quality/u_quality_carisma3/quality_alert"
+            }
+        },
+        "staging": {
+            "dbx_hive": {
+                "stg_sql": "",
+                "stg_db_name": "",
+                "stg_tab_name": "",
+                "stg_cols_list": [],
+                "stg_filter_stmt": ""
+            },
+            "adls_fs": {
+                "stg_file_loc": "data/unified/psc-conf/quality/u_quality_carisma3/quality_alert"
+            }
+        },
+        "merge": {
+            "dbx_hive": {
+                "merge_query_exists": true,
+                "merge_sql": "MERGE INTO `scd`.`scdtype2_1`    USING     (    SELECT       id, employee_id, first_name, last_name, gender, address_street, address_city, address_country, email, job_title, current_date AS start_date, null AS end_date, effective_start_dtm, effective_end_dtm    FROM scdType2NEW    UNION ALL    SELECT       id, employee_id, first_name, last_name, gender, address_street, address_city, address_country, email, job_title, start_date, end_date, effective_start_dtm, effective_end_dtm      FROM scdType2_temp    WHERE employee_id IN     (SELECT employee_id FROM scdType2NEW)    ) scdChangeRows    ON scdtype2_1.id = scdChangeRows.id    WHEN MATCHED THEN       UPDATE SET scdType2_1.effective_end_dtm = current_timestamp()    WHEN NOT MATCHED THEN INSERT *",
+                "merge_key_cols": [],
+                "merge_codition": ""
+            },
+            "adls_fs": {
+                "merge_file_loc": "data/unified/psc-conf/quality/u_quality_carisma3/quality_alert"
+            }
+        }
+    }
+}
